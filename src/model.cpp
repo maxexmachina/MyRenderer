@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <string>
+#include <cstring>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -13,12 +14,12 @@ Model::Model(const char *filename) : mVerts(), mFaces() {
     std::ifstream in;
     in.open(filename, std::ifstream::in);
     if (in.fail()) {
-        std::cerr << "Error: " << errno << '\n';
+        std::cerr << "Error loading model from " << filename << ": " << std::strerror(errno) << '\n';
     }
     std::string line;
     while (!in.eof()) {
         std::getline(in, line);
-        std::istringstream iss(line.c_str());
+        std::istringstream iss{ line.c_str() };
         char trash;
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
