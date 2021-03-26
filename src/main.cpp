@@ -42,37 +42,33 @@ void line(Vec2i p0, Vec2i p1, TGAImage& image, const TGAColor& color) {
     }
 }
 
-void triangle(Vec2i& v0, Vec2i& v1, Vec2i& v2, TGAImage& img, const TGAColor& color) {
-    std::array<Vec2i, 3> v{ v0, v1, v2 };
-    std::sort(v.begin(), v.end(), [](auto a, auto b) { return a.y < b.y; });
-    const auto total_height = v[2].y - v[0].y;
-    for (int i = 0; i < total_height; i++) {
-        auto second_half = i > v[1].y - v[0].y || v[1].y == v[0].y;
-        const auto seg_height = second_half ? v[2].y - v[1].y : v[1].y - v[0].y;
-        const auto alpha = static_cast<float>(i)/total_height;
-        const auto beta = static_cast<float>(i - (second_half ? v[1].y - v[0].y : 0))/seg_height;
-        auto a = v[0] + (v[2] - v[0]) * alpha;
-        auto b = second_half ? v[1] + (v[2] - v[1]) * beta : v[0] + (v[1] - v[0]) * beta;
-        if (a.x > b.x) std::swap(a, b);
-        for (int j = a.x; j < b.x; j++) {
-            img.set(j, v[0].y + i, color);
-        }
-    }
+Vec3f barycentric(const std::array<Vec2i, 3>& pts, Vec2i p) {
+    const Vec3f u = Vec3f{ static_cast<float>(pts[2].x - pts[0].x),
+                     static_cast<float>(pts[1].x - pts[0].x),
+                     static_cast<float>(pts[0].x - p.x) } ^
+              Vec3f{ static_cast<float>(pts[2].y - pts[0].y),
+                     static_cast<float>(pts[1].y - pts[0].y),
+                     static_cast<float>(pts[0].y - p.y) };
+    if (std::abs(u.z) < 1) return Vec3f{ -1, 1, 1 };
+    return Vec3f{ 1.f - (u.x + u.y)/u.z, u.x/u.z, u.y/u.z };
 }
 
-void triangle(std::array<Vec2i, 3>& v, TGAImage& img, const TGAColor& color) {
-    std::sort(v.begin(), v.end(), [](auto a, auto b) { return a.y < b.y; });
-    const auto total_height = v[2].y - v[0].y;
-    for (int i = 0; i < total_height; i++) {
-        auto second_half = i > v[1].y - v[0].y || v[1].y == v[0].y;
-        const auto seg_height = second_half ? v[2].y - v[1].y : v[1].y - v[0].y;
-        const auto alpha = static_cast<float>(i)/total_height;
-        const auto beta = static_cast<float>(i - (second_half ? v[1].y - v[0].y : 0))/seg_height;
-        auto a = v[0] + (v[2] - v[0]) * alpha;
-        auto b = second_half ? v[1] + (v[2] - v[1]) * beta : v[0] + (v[1] - v[0]) * beta;
-        if (a.x > b.x) std::swap(a, b);
-        for (int j = a.x; j < b.x; j++) {
-            img.set(j, v[0].y + i, color);
+void triangle(std::array<Vec2i, 3>& pts, TGAImage& image, const TGAColor& color) {
+    Vec2i bboxmin{ image.get_width() - 1, image.get_height() - 1 };
+    Vec2i bboxmax{ 0, 0 };
+    Vec2i clamp{ image.get_width() - 1, image.get_height() - 1 };
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 2; j++) {
+            bboxmin[j] = std::max(0,        std::min(bboxmin[j], pts[i][j]));
+            bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+        }
+    }
+    Vec2i p;
+    for (p.x = bboxmin.x; p.x < bboxmax.x; p.x++) {
+        for (p.y = bboxmin.y; p.y < bboxmax.y; p.y++) {
+            Vec3f bc = barycentric(pts, p);
+            if (bc.x < 0 || bc.y < 0 || bc.z < 0) continue;
+            image.set(p.x, p.y, color);
         }
     }
 }
@@ -80,16 +76,8 @@ void triangle(std::array<Vec2i, 3>& v, TGAImage& img, const TGAColor& color) {
 int main(int argc, char** argv) {
     TGAImage image{ width, height, TGAImage::RGB };
 
-    std::array<Vec2i, 3> v0{ Vec2i{ 10, 70 }, Vec2i{ 50, 160 }, Vec2i{ 70, 80 } };
-    std::array<Vec2i, 3> v1{ Vec2i{ 180, 50 }, Vec2i{ 150, 1 }, Vec2i{ 70, 180 } };
-    std::array<Vec2i, 3> v2{ Vec2i{ 180, 150 }, Vec2i{ 120, 160 }, Vec2i{ 130, 180 } };
-
-    triangle(v0, image, red);
-    triangle(v1, image, white);
-    triangle(v2, image, green);
-//        triangle(v0[0], v0[1], v0[2], image, red);
-//        triangle(v1[0], v1[1], v1[2], image, white);
-//        triangle(v2[0], v2[1], v2[2], image, green);
+    std::array<Vec2i, 3> pts{Vec2i{10, 10}, Vec2i{100, 30}, Vec2i{190, 160}};
+    triangle(pts, image, red);
 
     image.flip_vertically();
     image.write_tga_file("output.tga");

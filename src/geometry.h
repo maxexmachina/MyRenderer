@@ -7,6 +7,7 @@
 
 #include <cmath>
 #include <variant>
+#include <cassert>
 #include "../dependencies/fisqrt.h"
 
 template <class T>
@@ -19,9 +20,10 @@ struct Vec2 {
     Vec2() : u(0), v(0) {}
     Vec2(T _u, T _v) : u(_u), v(_v) {}
 
+    inline T&       operator [](uint16_t idx)           { assert((idx >= 0) && (idx < 2)); return raw[idx]; }
     inline Vec2<T> operator +(const Vec2<T>& vec) const { return Vec2<T>{ u + vec.u, v + vec.v }; }
     inline Vec2<T> operator -(const Vec2<T>& vec) const { return Vec2<T>{ u - vec.u, v - vec.v }; }
-    inline Vec2<T> operator *(float f)            const { return Vec2<T>{ static_cast<T>(u * f), static_cast<T>(v * f) }; }
+    inline Vec2<T> operator *(const float f)      const { return Vec2<T>{ static_cast<T>(u * f), static_cast<T>(v * f) }; }
 
     friend std::ostream& operator<<(std::ostream& s, const Vec2<T>& v) {
         s << "(" << v.x << ", " << v.y << ")\n";
@@ -39,10 +41,11 @@ struct Vec3 {
     Vec3() : x(0), y(0), z(0) {}
     Vec3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
 
+    inline T&       operator [](uint16_t idx)           { assert((idx >= 0) && (idx < 2)); return raw[idx]; }
     inline Vec3<T> operator ^(const Vec3<T> &vec) const { return Vec3<T>{ y*vec.z-z*vec.y, z*vec.x-x*vec.z, x*vec.y-y*vec.x }; }
     inline Vec3<T> operator +(const Vec3<T> &vec) const { return Vec3<T>{ x+vec.x, y+vec.y, z+vec.z }; }
     inline Vec3<T> operator -(const Vec3<T> &vec) const { return Vec3<T>{ x-vec.x, y-vec.y, z-vec.z }; }
-    inline Vec3<T> operator *(float f)            const { return Vec3<T>{ x*f, y*f, z*f }; }
+    inline Vec3<T> operator *(const float f)      const { return Vec3<T>{ static_cast<T>(x*f), static_cast<T>(y*f), static_cast<T>(z*f) }; }
     inline T       operator *(const Vec3<T> &vec) const { return x*vec.x + y*vec.y + z*vec.z; }
 
     [[nodiscard]] float norm() const { return std::sqrt(x*x + y*y + z*z); }
