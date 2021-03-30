@@ -1,7 +1,3 @@
-//
-// Created by mavik on 21/03/2021.
-//
-
 #ifndef MYRENDERER_FISQRT_H
 #define MYRENDERER_FISQRT_H
 

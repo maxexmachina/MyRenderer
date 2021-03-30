@@ -1,12 +1,9 @@
-//
-// Created by mavik on 21/03/2021.
-//
-
 #ifndef MYRENDERER_GEOMETRY_H
 #define MYRENDERER_GEOMETRY_H
 
 #include <cmath>
 #include <cassert>
+
 #include "../dependencies/fisqrt.h"
 
 template <class T>
@@ -40,7 +37,7 @@ struct Vec3 {
     Vec3() : x(0), y(0), z(0) {}
     Vec3(T _x, T _y, T _z) : x(_x), y(_y), z(_z) {}
 
-    inline T&      operator [](uint16_t idx)            { assert((idx >= 0) && (idx < 2)); return raw[idx]; }
+    inline T&      operator [](uint16_t idx)            { assert((idx >= 0) && (idx < 3)); return raw[idx]; }
     inline Vec3<T> operator ^(const Vec3<T> &vec) const { return Vec3<T>{ y*vec.z-z*vec.y, z*vec.x-x*vec.z, x*vec.y-y*vec.x }; }
     inline Vec3<T> operator +(const Vec3<T> &vec) const { return Vec3<T>{ x+vec.x, y+vec.y, z+vec.z }; }
     inline Vec3<T> operator -(const Vec3<T> &vec) const { return Vec3<T>{ x-vec.x, y-vec.y, z-vec.z }; }

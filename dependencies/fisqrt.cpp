@@ -1,7 +1,5 @@
-//
-// Created by mavik on 21/03/2021.
-//
 #include "fisqrt.h"
+
 float Q_rsqrt( float number ) {
     long i;
     float x2, y;

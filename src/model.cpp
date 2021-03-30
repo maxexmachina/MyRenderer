@@ -1,13 +1,10 @@
-//
-// Created by mavik on 21/03/2021.
-//
-
 #include <iostream>
 #include <string>
 #include <cstring>
 #include <fstream>
 #include <sstream>
 #include <vector>
+
 #include "model.h"
 
 Model::Model(const char *filename) : mVerts(), mFaces() {

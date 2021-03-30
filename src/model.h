@@ -1,11 +1,8 @@
-//
-// Created by mavik on 21/03/2021.
-//
-
 #ifndef MYRENDERER_MODEL_H
 #define MYRENDERER_MODEL_H
 
 #include <vector>
+
 #include "geometry.h"
 
 class Model {
