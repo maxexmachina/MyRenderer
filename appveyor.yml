@@ -1,4 +1,4 @@
-images:
+image:
         - Visual Studio 2019
 clone folder: c:\projects\source
 build script:
