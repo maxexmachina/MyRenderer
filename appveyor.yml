@@ -1,0 +1,9 @@
+images:
+        - Visual Studio 2019
+clone folder: c:\projects\source
+build script:
+        - cmd: >-
+                mkdir build
+                cd build
+                cmake c:\projects\source -G "Visual Studio 19"
+                cmake --build . --config "Debug"
