@@ -7,6 +7,6 @@ build_script:
 
         cd build
                 
-        cmake c:\projects\source -G "Visual Studio 19"
+        cmake c:\projects\source -G "Visual Studio 16 2019"
                 
         cmake --build . --config "Debug"
