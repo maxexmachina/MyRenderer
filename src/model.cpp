@@ -7,7 +7,7 @@
 
 #include "model.h"
 
-Model::Model(const char *filename) : mVerts(), mFaces() {
+Model::Model(const char *filename) : mFaces(), mVerts() {
     std::ifstream in;
     in.open(filename, std::ifstream::in);
     if (in.fail()) {
@@ -16,7 +16,7 @@ Model::Model(const char *filename) : mVerts(), mFaces() {
     std::string line;
     while (!in.eof()) {
         std::getline(in, line);
-        std::istringstream iss{ line.c_str() };
+        std::istringstream iss{ line };
         char trash;
         if (!line.compare(0, 2, "v ")) {
             iss >> trash;
