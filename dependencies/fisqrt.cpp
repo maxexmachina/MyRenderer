@@ -3,9 +3,9 @@
 float Q_rsqrt( float number ) {
     long i;
     float x2, y;
-    const float threehalfs = 1.5F;
+    const float threehalfs = 1.5f;
 
-    x2 = number * 0.5F;
+    x2 = number * 0.5f;
     y  = number;
     i  = * ( long * ) &y;                       // evil floating point bit level hacking
     i  = 0x5f3759df - ( i >> 1 );               // what the fuck?
