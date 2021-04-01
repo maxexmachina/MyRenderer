@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "geometry.h"
+#include "../dependencies/tgaimage.h"
 
 class Model {
 public:
@@ -11,13 +12,18 @@ public:
     ~Model() = default;
     [[nodiscard]] int nverts() const { return static_cast<int>(mVerts.size()); }
     [[nodiscard]] int nfaces() const { return static_cast<int>(mFaces.size()); }
-    [[nodiscard]] Vec3f vert(int idx) const { return mVerts[idx]; }
-    [[nodiscard]] std::vector<int> face(int idx) const { return mFaces[idx]; }
-    [[nodiscard]] auto faces() const { return mFaces; }
-
+    [[nodiscard]] Vec3f getVert(int idx) const { return mVerts[idx]; }
+    [[nodiscard]] TGAColor getDiffuseColor(Vec2i uv) { return mDiffuseMap.get(uv.x, uv.y); }
+    [[nodiscard]] std::vector<int> getFace(int idx);
+    [[nodiscard]] Vec2i getUv(int faceIdx, int nvert);
 private:
-    std::vector<std::vector<int>> mFaces;
+    void loadTexture(const std::string& filename, const char* suffix, TGAImage& image);
+
     std::vector<Vec3f> mVerts;
+    std::vector<std::vector<Vec3i>> mFaces;
+    std::vector<Vec3f> mNorms;
+    std::vector<Vec2f> mUv;
+    TGAImage mDiffuseMap;
 };
 
 #endif //MYRENDERER_MODEL_H

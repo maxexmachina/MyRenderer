@@ -16,7 +16,7 @@ struct Vec2 {
     Vec2() : u(0), v(0) {}
     Vec2(T _u, T _v) : u(_u), v(_v) {}
 
-    inline T&      operator [](uint16_t idx)           { assert((idx >= 0) && (idx < 2)); return raw[idx]; }
+    inline T&      operator [](uint16_t idx)            { assert((idx >= 0) && (idx < 2)); return raw[idx]; }
     inline Vec2<T> operator +(const Vec2<T>& vec) const { return Vec2<T>{ u + vec.u, v + vec.v }; }
     inline Vec2<T> operator -(const Vec2<T>& vec) const { return Vec2<T>{ u - vec.u, v - vec.v }; }
     inline Vec2<T> operator *(const float f)      const { return Vec2<T>{ static_cast<T>(u * f), static_cast<T>(v * f) }; }

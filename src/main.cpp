@@ -59,8 +59,7 @@ Vec3f barycentric(const std::array<Vec3f, 3>& pts, Vec3f p) {
                      static_cast<float>(pts[0].x - p.x) } ^
               Vec3f{ static_cast<float>(pts[2].y - pts[0].y),
                      static_cast<float>(pts[1].y - pts[0].y),
-                     static_cast<float>(pts[0].y - p.y)
-    };
+                     static_cast<float>(pts[0].y - p.y) };
 
     if (std::abs(u.z) < 1) {
         return Vec3f{ -1, 1, 1 };
@@ -125,7 +124,7 @@ int main(int argc, char** argv) {
     if (2==argc) {
         model = new Model{ argv[1] };
     } else {
-        model = new Model{ "../resources/obj/african_head.obj" };
+        model = new Model{ "../resources/african_head.obj" };
     }
 
     auto* zbuffer = new float[ width * height ];
@@ -137,7 +136,7 @@ int main(int argc, char** argv) {
         std::array<Vec3f, 3> worldCoords;
         std::array<Vec3f, 3> screenCoords;
         for (int i=0; i<3; i++) {
-            const auto v = model->vert(face[i]);
+            const auto v = model->getVert(face[i]);
             worldCoords[i] = v;
             screenCoords[i] = world2screen(v);
         }
