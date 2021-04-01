@@ -48,7 +48,7 @@ struct Vec3 {
     [[nodiscard]] Vec3<T>& normalize(T l = 1) { *this = (*this) * l * Q_rsqrt(x*x + y*y + z*z); return *this; }
 
     friend std::ostream& operator<<(std::ostream& s, const Vec3<T>& v) {
-        s << "(" << v.x << ", " << v.y << ")\n";
+        s << "(" << v.x << ", " << v.y << ", " << v.z << ")\n";
         return s;
     }
 
