@@ -10,8 +10,8 @@ class Model {
 public:
     explicit Model(const char* filename);
     ~Model() = default;
-    [[nodiscard]] int nverts() const { return static_cast<int>(mVerts.size()); }
-    [[nodiscard]] int nfaces() const { return static_cast<int>(mFaces.size()); }
+    [[nodiscard]] int nverts() const { return mVerts.size(); }
+    [[nodiscard]] int nfaces() const { return mFaces.size(); }
     [[nodiscard]] Vec3f getVert(int idx) const { return mVerts[idx]; }
     [[nodiscard]] TGAColor getDiffuseColor(Vec2i uv) { return mDiffuseMap.get(uv.x, uv.y); }
     [[nodiscard]] std::vector<int> getFace(int idx);

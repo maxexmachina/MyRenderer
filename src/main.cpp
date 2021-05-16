@@ -8,7 +8,7 @@
 static const TGAColor white{ 255, 255, 255, 255 };
 static const TGAColor red{ 255, 0,   0,   255 };
 static const TGAColor green{ 0, 255,   0,   255 };
-static const TGAColor blue{0, 0, 255, 255};
+static const TGAColor blue{0, 0, 255, 255 };
 static Model* model = nullptr;
 static int* zbuffer = nullptr;
 static const Vec3f lightDir{0, 0, -1};

@@ -8,14 +8,18 @@
 
 template <class T>
 struct Vec2 {
-    union {
-        T raw[2];
-        struct { T u, v; };
-        struct { T x, y; };
-    };
-    Vec2() : u(0), v(0) {}
-    Vec2(T _u, T _v) : u(_u), v(_v) {}
-
+    T x, y;
+    Vec2<T>() : x(T()), y(T()) {}
+    Vec2<T>(T _x, T _y) : x(_x), y(_y) {}
+    Vec2<T>(const Vec2<T>& v) : x(T()), y(T()) { *this = v; }
+    Vec2<T>& operator=(const Vec2<T>& v) {
+        if (this != &v) {
+            x = v.x;
+            y = v.y;
+        }
+        return *this;
+    }
+    
     inline T&      operator [](uint16_t idx)            { assert((idx >= 0) && (idx < 2)); return raw[idx]; }
     inline Vec2<T> operator +(const Vec2<T>& vec) const { return Vec2<T>{ u + vec.u, v + vec.v }; }
     inline Vec2<T> operator -(const Vec2<T>& vec) const { return Vec2<T>{ u - vec.u, v - vec.v }; }
