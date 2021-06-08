@@ -2,26 +2,28 @@
 #define __MODEL_H__
 
 #include <vector>
+
 #include "geometry.h"
 #include "../dependencies/tgaimage.h"
 
 class Model {
-private:
-    std::vector<Vec3f> verts_;
-    std::vector<std::vector<Vec3i> > faces_; // attention, this Vec3i means vertex/uv/normal
-    std::vector<Vec3f> norms_;
-    std::vector<Vec2f> uv_;
-    TGAImage diffusemap_;
-    void load_texture(std::string filename, const char *suffix, TGAImage &img);
 public:
-    Model(const char *filename);
-    ~Model();
-    int nverts();
-    int nfaces();
-    Vec3f vert(int i);
-    Vec2i uv(int iface, int nvert);
-    TGAColor diffuse(Vec2i uv);
-    std::vector<int> face(int idx);
+    explicit Model(const char *filename);
+    ~Model() = default;
+    [[nodiscard]] int nverts() const { return mVerts.size(); }
+    [[nodiscard]] int nfaces() const { return mFaces.size(); }
+    [[nodiscard]] Vec3f getVert(int i) const { return mVerts[i]; }
+    [[nodiscard]] TGAColor getDiffuseColor(const Vec2i& uv) { return mDiffuseMap.get(uv.x, uv.y); }
+    [[nodiscard]] std::vector<int> getFace(int idx);
+    [[nodiscard]] Vec2i getUv(int iface, int nvert);
+private:
+    void loadTexture(const std::string& filename, const char *suffix, TGAImage& img);
+
+    std::vector<Vec3f> mVerts;
+    std::vector<std::vector<Vec3i>> mFaces; // attention, this Vec3i means vertex/uv/normal
+    std::vector<Vec3f> mNorms;
+    std::vector<Vec2f> mUv;
+    TGAImage mDiffuseMap;
 };
 
 #endif //__MODEL_H__
