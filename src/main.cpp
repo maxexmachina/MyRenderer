@@ -3,6 +3,7 @@
 #include <array>
 
 #include "model.h"
+#include "geometry.h"
 
 static const TGAColor white{ 255, 255, 255, 255 };
 static const TGAColor red{ 255, 0,   0,   255 };
@@ -14,6 +15,7 @@ static const Vec3f lightDir{ 0, 0, -1 };
 static const auto width = 800;
 static const auto height = 800;
 static const auto depth = 255;
+static const auto camera = Vec3f{ 0, 0, 3 };
 
 void line(Vec2i p0, Vec2i p1, TGAImage& image, const TGAColor& color) {
     auto x0 = p0.x;
@@ -140,6 +142,70 @@ Vec3i world2screen(Vec3f v) {
                  static_cast<int>((v.z + 1.0f) * depth/2.0f + 0.5f) };
 }
 
+
+Vec3f mat2vec(Matrix m) {
+    return Vec3f{ m[0][0]/m[3][0], m[1][0]/m[3][0], m[2][0]/m[3][0] };
+}
+
+Matrix vec2mat(const Vec3f& v) {
+    Matrix res{ 4, 1 };
+    res[0][0] = v.x;
+    res[1][0] = v.y;
+    res[2][0] = v.z;
+    res[3][0] = 1.0f;
+    return res;
+}
+
+Matrix viewport(int x, int y, int w, int h) {
+    auto res = Matrix::eye(4);
+    res[0][3] = x + w / 2.f;
+    res[1][3] = y + h / 2.f;
+    res[2][3] = depth / 2.f;
+
+    res[0][0] = w / 2.f;
+    res[1][1] = h / 2.f;
+    res[2][2] = depth / 2.f;
+    return res;
+}
+
+Matrix translation(const Vec3f& v) {
+    auto res = Matrix::eye(4);
+    res[0][3] = v.x;
+    res[1][3] = v.y;
+    res[2][3] = v.z;
+    return res;
+}
+
+Matrix zoom(float factor) {
+    auto res = Matrix::eye(4);
+    res[0][0] = res[1][1] = res[2][2] = factor;
+    return res;
+}
+
+Matrix rotX(float angle) {
+    auto res = Matrix::eye(4);
+    res[1][1] = res[2][2] = cosf(angle);
+    res[1][2] = -sinf(angle);
+    res[2][1] = sinf(angle);
+    return res;
+}
+
+Matrix rotY(float angle) {
+    auto res = Matrix::eye(4);
+    res[0][0] = res[2][2] = cosf(angle);
+    res[0][2] = -sinf(angle);
+    res[2][0] = sinf(angle);
+    return res;
+}
+
+Matrix rotZ(float angle) {
+    auto res = Matrix::eye(4);
+    res[0][0] = res[1][1] = cosf(angle);
+    res[0][1] = -sinf(angle);
+    res[1][0] = sinf(angle);
+    return res;
+}
+
 int main(int argc, char** argv) {
     if (2==argc) {
         model = new Model(argv[1]);
@@ -151,6 +217,12 @@ int main(int argc, char** argv) {
     std::fill(zbuffer, zbuffer + width * height, std::numeric_limits<int>::min());
 
     { // draw the model
+        auto projection = Matrix::eye(4);
+        auto vp = viewport(width/8, height/8, width*3/4, height*3/4);
+        projection[3][2] = -1.f / camera.z;
+
+
+
         TGAImage image(width, height, TGAImage::RGB);
         for (int i = 0; i < model->nfaces(); i++) {
             const auto face = model->getFace(i);
@@ -160,8 +232,8 @@ int main(int argc, char** argv) {
 
             for (int j = 0; j < 3; j++) {
                 Vec3f v = model->getVert(face[j]);
+                screen_coords[j] = mat2vec(vp * projection * vec2mat(v));
                 world_coords[j]  = v;
-                screen_coords[j] = world2screen(v);
             }
 
             const auto normal = ((world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0])).normalize();

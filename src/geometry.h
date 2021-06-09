@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <vector>
 
 #include "../dependencies/fisqrt.h"
 
@@ -70,5 +71,34 @@ using Vec3i = Vec3<int>;
 
 template <> template <> Vec3<int>::Vec3(const Vec3<float> &v);
 template <> template <> Vec3<float>::Vec3(const Vec3<int> &v);
+
+
+///////////////////
+
+const int DEFAULT_SIZE = 4;
+
+class Matrix {
+
+public:
+    [[nodiscard]] inline int nrows() const { return mMatrix.size(); }
+    [[nodiscard]] inline int ncols() const { return mMatrix[0].size(); }
+
+    Matrix operator*(const Matrix& m) const;
+
+    static Matrix eye(int size);
+    Matrix transpose();
+//    Matrix inverse();
+
+    friend std::ostream& operator<<(std::ostream& s, const Matrix& m);
+
+    std::vector<float>& operator[](const int i);
+    Matrix(int row=DEFAULT_SIZE, int col=DEFAULT_SIZE);
+    ~Matrix() = default;
+
+private:
+    int mCols;
+    int mRows;
+    std::vector<std::vector<float>> mMatrix;
+};
 
 #endif //MYRENDERER_GEOMETRY_H
