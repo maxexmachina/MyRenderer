@@ -9,13 +9,16 @@ static const TGAColor white{ 255, 255, 255, 255 };
 static const TGAColor red{ 255, 0,   0,   255 };
 static const TGAColor green{ 0, 255,   0,   255 };
 static const TGAColor blue{ 0, 0, 255, 255 };
-static Model* model = nullptr;
-static int* zbuffer = nullptr;
-static const Vec3f lightDir{ 0, 0, -1 };
+
 static const auto width = 800;
 static const auto height = 800;
 static const auto depth = 255;
-static const auto camera = Vec3f{ 0, 0, 3 };
+
+static Model* model = nullptr;
+static int* zbuffer = nullptr;
+static const Vec3f eye{ 1, 1, 3 };
+static Vec3f center{ 0, 0, 0 };
+static const auto lightDir = Vec3f{1, -1, 1}.normalize();
 
 void line(Vec2i p0, Vec2i p1, TGAImage& image, const TGAColor& color) {
     auto x0 = p0.x;
@@ -100,13 +103,13 @@ void triangle(std::array<Vec3f, 3>& pts, float *buffer, TGAImage& image, const T
     }
 }
 
-void triangleOld(std::array<Vec3i, 3>& v, std::array<Vec2i, 3>& uv, TGAImage& image, float intensity, int *buffer) {
+void triangleOld(std::array<Vec3i, 3>& v, std::array<float, 3>& ity, TGAImage& image, int *buffer) {
 
     if (v[0].y == v[1].y && v[0].y == v[2].y) return; // i dont care about degenerate triangles
 
-    if (v[0].y > v[1].y) { std::swap(v[0], v[1]); std::swap(uv[0], uv[1]); }
-    if (v[0].y > v[2].y) { std::swap(v[0], v[2]); std::swap(uv[0], uv[2]); }
-    if (v[1].y > v[2].y) { std::swap(v[1], v[2]); std::swap(uv[1], uv[2]); }
+    if (v[0].y > v[1].y) { std::swap(v[0], v[1]); std::swap(ity[0], ity[1]); }
+    if (v[0].y > v[2].y) { std::swap(v[0], v[2]); std::swap(ity[0], ity[2]); }
+    if (v[1].y > v[2].y) { std::swap(v[1], v[2]); std::swap(ity[1], ity[2]); }
 
     const auto totalHeight = v[2].y - v[0].y;
     for (int i=0; i < totalHeight; i++) {
@@ -116,27 +119,25 @@ void triangleOld(std::array<Vec3i, 3>& v, std::array<Vec2i, 3>& uv, TGAImage& im
         const auto beta  = static_cast<float>(i - (secondHalf ? v[1].y - v[0].y : 0)) / segmentHeight;
         auto A   =               v[0]  + Vec3f{ v[2] - v[0] } * alpha;
         auto B   = secondHalf ? v[1] + Vec3f{ v[2] - v[1] } * beta : v[0] + Vec3f{ v[1] - v[0]  } * beta;
-        auto uvA =               uv[0] +      (uv[2] - uv[0]) * alpha;
-        auto uvB = secondHalf ? uv[1] + (uv[2] - uv[1]) * beta : uv[0] + (uv[1] - uv[0]) * beta;
-        if (A.x > B.x) { std::swap(A, B); std::swap(uvA, uvB); }
+        auto ityA = ity[0] + (ity[2] - ity[0]) * alpha;
+        auto ityB = secondHalf ? ity[1] + (ity[2] - ity[1]) * beta : ity[0] + (ity[1] - ity[0]) * beta;
+        if (A.x > B.x) { std::swap(A, B); std::swap(ityA, ityB); }
         for (int j = A.x; j <= B.x; j++) {
             const auto phi = B.x == A.x ? 1. : static_cast<float>(j - A.x)/static_cast<float>(B.x - A.x);
             const auto   P = Vec3f{ A }  + Vec3f{ B - A } * phi;
-            const auto uvP =     uvA +   (uvB - uvA) * phi;
+            const auto ityP = ityA + (ityB - ityA) * phi;
             const auto idx = static_cast<int>(P.x + P.y * width);
+            if (P.x >= width || P.y >= height || P.x < 0 || P.y < 0) continue;
             if (buffer[idx] < P.z) {
                 buffer[idx] = P.z;
-                TGAColor color = model->getDiffuseColor(uvP);
-                image.set(P.x, P.y, TGAColor{ static_cast<uint8_t>(color.r * intensity),
-                                              static_cast<uint8_t>(color.g * intensity),
-                                              static_cast<uint8_t>(color.b * intensity), 255 });
+                image.set(P.x, P.y, TGAColor{255, 255, 255} * ityP);
             }
         }
     }
 }
 
 
-Vec3i world2screen(Vec3f v) {
+Vec3i world2screen(const Vec3f& v) {
     return Vec3i{static_cast<int>((v.x + 1.0f) * width/2.0f + 0.5f),
                  static_cast<int>((v.y + 1.0f) * height/2.0f + 0.5f),
                  static_cast<int>((v.z + 1.0f) * depth/2.0f + 0.5f) };
@@ -165,6 +166,20 @@ Matrix viewport(int x, int y, int w, int h) {
     res[0][0] = w / 2.f;
     res[1][1] = h / 2.f;
     res[2][2] = depth / 2.f;
+    return res;
+}
+
+Matrix lookAt(const Vec3f& eye, Vec3f& center, const Vec3f& up) {
+    auto z = (eye - center).normalize();
+    auto x = (up^z).normalize();
+    auto y = (z^x).normalize();
+    auto res = Matrix::eye(4);
+    for (int i = 0; i < 3; ++i) {
+        res[0][i] = x[i];
+        res[1][i] = y[i];
+        res[2][i] = z[i];
+        res[i][3] = -center[i];
+    }
     return res;
 }
 
@@ -217,11 +232,16 @@ int main(int argc, char** argv) {
     std::fill(zbuffer, zbuffer + width * height, std::numeric_limits<int>::min());
 
     { // draw the model
+        auto modelView = lookAt(eye, center, Vec3f{0, 1, 0});
         auto projection = Matrix::eye(4);
         auto vp = viewport(width/8, height/8, width*3/4, height*3/4);
-        projection[3][2] = -1.f / camera.z;
+        projection[3][2] = -1.f / (eye - center).norm();
 
-
+        std::cerr << modelView << '\n';
+        std::cerr << projection << '\n';
+        std::cerr << vp << '\n';
+        const auto transform = (vp * projection * modelView);
+        std::cerr << transform << '\n';
 
         TGAImage image(width, height, TGAImage::RGB);
         for (int i = 0; i < model->nfaces(); i++) {
@@ -230,24 +250,18 @@ int main(int argc, char** argv) {
             std::array<Vec3i, 3> screen_coords;
             std::array<Vec3f, 3> world_coords;
 
+            std::array<float, 3> intensities;
             for (int j = 0; j < 3; j++) {
                 Vec3f v = model->getVert(face[j]);
-                screen_coords[j] = mat2vec(vp * projection * vec2mat(v));
+                screen_coords[j] = mat2vec(vp * projection * modelView * vec2mat(v));
                 world_coords[j]  = v;
+                intensities[j] = model->getNorm(i, j) * lightDir;
             }
+            triangleOld(screen_coords, intensities, image, zbuffer);
 
-            const auto normal = ((world_coords[2]-world_coords[0])^(world_coords[1]-world_coords[0])).normalize();
-            float intensity = normal * lightDir;
-            if (intensity > 0) {
-                std::array<Vec2i, 3> uv;
-                for (int j = 0; j < 3; j++) {
-                    uv[j] = model->getUv(i, j);
-                }
-                triangleOld(screen_coords, uv, image, intensity, zbuffer);
-            }
         }
 
-        image.flip_vertically();
+//        image.flip_vertically();
         image.write_tga_file("output.tga");
     }
 
@@ -255,10 +269,10 @@ int main(int argc, char** argv) {
         TGAImage zbimage(width, height, TGAImage::GRAYSCALE);
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
-                zbimage.set(i, j, TGAColor(zbuffer[i+j*width], 1));
+                zbimage.set(i, j, TGAColor{ static_cast<uint8_t>(zbuffer[i+j*width]) });
             }
         }
-        zbimage.flip_vertically();
+//        zbimage.flip_vertically();
         zbimage.write_tga_file("zbuffer.tga");
     }
     delete model;

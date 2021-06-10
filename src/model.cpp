@@ -85,3 +85,8 @@ Vec2i Model::getUv(int faceIdx, int nvert) {
     return Vec2i{ static_cast<int>(mUv[idx].x * mDiffuseMap.get_width()),
                   static_cast<int>(mUv[idx].y * mDiffuseMap.get_height()) };
 }
+
+Vec3f Model::getNorm(int faceIdx, int nvert) {
+    const auto idx = mFaces[faceIdx][nvert][2];
+    return mNorms[idx].normalize();
+}

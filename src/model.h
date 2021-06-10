@@ -15,7 +15,8 @@ public:
     [[nodiscard]] Vec3f getVert(int i) const { return mVerts[i]; }
     [[nodiscard]] TGAColor getDiffuseColor(const Vec2i& uv) { return mDiffuseMap.get(uv.x, uv.y); }
     [[nodiscard]] std::vector<int> getFace(int idx);
-    [[nodiscard]] Vec2i getUv(int iface, int nvert);
+    [[nodiscard]] Vec2i getUv(int faceIdx, int nvert);
+    [[nodiscard]] Vec3f getNorm(int faceIdx, int nvert);
 private:
     void loadTexture(const std::string& filename, const char *suffix, TGAImage& img);
 
